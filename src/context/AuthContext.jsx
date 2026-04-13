@@ -18,7 +18,10 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       try {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        const response = await axios.get("http://localhost:5000/api/auth/me");
+        // const response = await axios.get("http://localhost:5000/api/auth/me");
+        const response = await axios.get(
+          "https://employees-backend-nu.vercel.app/api/auth/me",
+        );
 
         if (response.data.success) {
           setUser(response.data.user);
@@ -35,7 +38,8 @@ export const AuthProvider = ({ children }) => {
   const login = async (username, password) => {
     try {
       const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
+        // "http://localhost:5000/api/auth/login",
+        "https://employees-backend-nu.vercel.app",
         {
           username,
           password,
