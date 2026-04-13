@@ -39,7 +39,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.post(
         // "http://localhost:5000/api/auth/login",
-        "https://employees-backend-nu.vercel.app",
+        "https://employees-backend-nu.vercel.app/api/auth/login",
         {
           username,
           password,
