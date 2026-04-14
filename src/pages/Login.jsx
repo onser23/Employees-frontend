@@ -122,7 +122,7 @@ const Login = () => {
         </form>
 
         {/* Demo məlumat */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
+        {/* <div className="mt-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
           <p className="font-medium mb-2">İlk dəfə istifadə edirsinizsə:</p>
           <p>
             Terminal-da{" "}
@@ -131,7 +131,7 @@ const Login = () => {
             </code>{" "}
             əmrini işlədin.
           </p>
-        </div>
+        </div> */}
       </div>
     </div>
   );
