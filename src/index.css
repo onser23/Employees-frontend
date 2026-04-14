@@ -34,3 +34,31 @@ code {
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+.custom-login-header {
+  align-items: center;
+  border-radius: 9999px;
+  justify-content: center;
+  width: 21rem;
+  height: 7rem;
+  display: flex;
+  margin-bottom: 1rem;
+  margin-left: auto;
+  margin-right: auto;
+  background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
+  --tw-gradient-from: #3b82f6 var(--tw-gradient-from-position);
+  --tw-gradient-to: #3b82f600 var(--tw-gradient-to-position);
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+  --tw-gradient-to: #9333ea var(--tw-gradient-to-position);
+  box-shadow:
+    0 0 #0000,
+    0 0 #0000,
+    var(--tw-shadow);
+  box-shadow:
+    var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000),
+    var(--tw-shadow);
+  --tw-shadow: 0 10px 15px -3px #0000001a, 0 4px 6px -4px #0000001a;
+  --tw-shadow-colored:
+    0 10px 15px -3px var(--tw-shadow-color),
+    0 4px 6px -4px var(--tw-shadow-color);
+}
