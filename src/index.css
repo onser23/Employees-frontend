@@ -47,9 +47,9 @@ code {
   margin-right: auto;
   background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
   --tw-gradient-from: #c3c3c3 var(--tw-gradient-from-position);
-  --tw-gradient-to: #ffffff var(--tw-gradient-to-position);
+  --tw-gradient-to: #3b82f600 var(--tw-gradient-to-position);
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
-  --tw-gradient-to: #9333ea var(--tw-gradient-to-position);
+  --tw-gradient-to: #ffffff var(--tw-gradient-to-position);
   box-shadow:
     0 0 #0000,
     0 0 #0000,
