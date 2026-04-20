@@ -54,7 +54,7 @@ const Login = () => {
           <div className="custom-login-header">
             {/* <Shield className="w-10 h-10 text-white" />
              */}
-            <img width="100" height="50" src={logo} alt="Logo" />
+            <img width="250" height="50" src={logo} alt="Logo" />
           </div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Panel</h1>
           <p className="text-gray-500">İşçi İdarəetmə Sistemi</p>
