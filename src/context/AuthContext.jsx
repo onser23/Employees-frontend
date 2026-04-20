@@ -21,7 +21,7 @@ export const AuthProvider = ({ children }) => {
         const response = await axios.get(
           // "http://localhost:5000/api/auth/me"
           // "https://employees-backend-nu.vercel.app/api/auth/me"
-          process.env.REACT_APP_API_URL,
+          process.env.REACT_APP_API_URL + "/auth/me",
         );
 
         process.env.EMAIL_USER;
@@ -41,7 +41,8 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.post(
         // "http://localhost:5000/api/auth/login",
-        "https://employees-backend-nu.vercel.app/api/auth/login",
+        // "https://employees-backend-nu.vercel.app/api/auth/login",
+        process.env.REACT_APP_API_URL + "/auth/login",
         {
           username,
           password,
