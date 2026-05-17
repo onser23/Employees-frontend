@@ -2,15 +2,13 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Shield, User, Lock, Eye, EyeOff } from "lucide-react";
-import toast from "react-hot-toast";
-import logo from "../images/logo.png";
+import toast, { Toaster } from "react-hot-toast";
 
 const Login = () => {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
   });
-
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -27,34 +25,75 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.username || !formData.password) {
-      toast.error("Bütün sahələri doldurun!");
+    // Validasiya
+    if (!formData.username.trim() || !formData.password) {
+      toast.error("İstifadəçi adı və şifrə daxil edilməlidir!", {
+        duration: 4000,
+        icon: "⚠️",
+      });
       return;
     }
 
     setIsLoading(true);
 
-    const result = await login(formData.username, formData.password);
+    try {
+      const result = await login(formData.username, formData.password);
 
-    if (result.success) {
-      toast.success("Xoş gəlmisiniz!");
-      navigate("/admin");
-    } else {
-      toast.error(result.message);
+      if (result.success) {
+        toast.success("Xoş gəlmisiniz, Admin!", {
+          duration: 3000,
+          icon: "👋",
+        });
+        navigate("/admin");
+      } else {
+        // Backend-dən gələn error mesajı
+        toast.error(result.message || "İstifadəçi adı və ya şifrə yanlışdır!", {
+          duration: 4000,
+          icon: "❌",
+        });
+      }
+    } catch (error) {
+      // Network və ya unexpected error
+      console.error("Login xətası:", error);
+      toast.error("Sistem xətası baş verdi. Zəhmət olmasa yenidən cəhd edin.", {
+        duration: 5000,
+        icon: "🔥",
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500 flex items-center justify-center p-4">
+      {/* Toaster - Toast bildirişləri göstərmək üçün MÜTLƏQ OLARAQ BURADA OLMALIDIR */}
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: "#363636",
+            color: "#fff",
+            padding: "16px",
+            borderRadius: "8px",
+          },
+          success: {
+            style: {
+              background: "#22c55e",
+            },
+          },
+          error: {
+            style: {
+              background: "#ef4444",
+            },
+          },
+        }}
+      />
+
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
         {/* Logo və Başlıq */}
         <div className="text-center mb-8">
-          <div className="custom-login-header">
-            {/* <Shield className="w-10 h-10 text-white" />
-             */}
-            <img width="250" height="50" src={logo} alt="Logo" />
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <Shield className="w-10 h-10 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Panel</h1>
           <p className="text-gray-500">İşçi İdarəetmə Sistemi</p>
@@ -76,6 +115,7 @@ const Login = () => {
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="İstifadəçi adınızı daxil edin"
                 disabled={isLoading}
+                autoComplete="username"
               />
             </div>
           </div>
@@ -94,6 +134,7 @@ const Login = () => {
                 className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
                 placeholder="Şifrənizi daxil edin"
                 disabled={isLoading}
+                autoComplete="current-password"
               />
               <button
                 type="button"
@@ -126,7 +167,7 @@ const Login = () => {
         </form>
 
         {/* Demo məlumat */}
-        {/* <div className="mt-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
+        <div className="mt-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
           <p className="font-medium mb-2">İlk dəfə istifadə edirsinizsə:</p>
           <p>
             Terminal-da{" "}
@@ -135,7 +176,7 @@ const Login = () => {
             </code>{" "}
             əmrini işlədin.
           </p>
-        </div> */}
+        </div>
       </div>
     </div>
   );

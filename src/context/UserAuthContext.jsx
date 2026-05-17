@@ -1,3 +1,4 @@
+// frontend/src/context/UserAuthContext.jsx
 import React, { createContext, useState, useContext, useEffect } from "react";
 import axios from "axios";
 
@@ -18,7 +19,7 @@ export const UserAuthProvider = ({ children }) => {
       try {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         const response = await axios.get(
-          // "http://localhost:5000/api/user-auth/me",
+          // 'http://localhost:5000/api/user-auth/me'
           process.env.REACT_APP_API_URL + "/user-auth/me",
         );
 
@@ -34,11 +35,10 @@ export const UserAuthProvider = ({ children }) => {
     setLoading(false);
   };
 
-  // frontend/src/context/UserAuthContext.jsx
   const login = async (email, password) => {
     try {
       const response = await axios.post(
-        // "http://localhost:5000/api/user-auth/login",
+        // 'http://localhost:5000/api/user-auth/login',
         process.env.REACT_APP_API_URL + "/user-auth/login",
         {
           email,
@@ -46,25 +46,37 @@ export const UserAuthProvider = ({ children }) => {
         },
       );
 
+      console.log("Server cavabı:", response.data); // Debug
+
       if (response.data.success) {
         const { token, user } = response.data;
 
-        // Token-ləri saxla
         localStorage.setItem("userToken", token);
         localStorage.setItem("userData", JSON.stringify(user));
 
-        // Axios header-ə əlavə et
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
         setUser(user);
-
-        // ✅ Uğurlu login - user dashboard-a yönləndir
         return { success: true, user };
+      } else {
+        // Backend success: false qaytardıqda
+        return {
+          success: false,
+          message: response.data.message || "Giriş uğursuz oldu",
+        };
       }
     } catch (error) {
+      console.error("UserAuthContext login xətası:", error.response?.data);
+
+      // MÜTLƏQ BU ŞƏKİLDƏ QAYTAR
+      const errorMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Email və ya şifrə yanlışdır!";
+
       return {
         success: false,
-        message: error.response?.data?.message || "Xəta baş verdi",
+        message: errorMessage,
       };
     }
   };

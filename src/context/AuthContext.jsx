@@ -37,11 +37,44 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   };
 
+  // const login = async (username, password) => {
+  //   try {
+  //     const response = await axios.post(
+  //       // "http://localhost:5000/api/auth/login",
+  //       // "https://employees-backend-nu.vercel.app/api/auth/login",
+  //       process.env.REACT_APP_API_URL + "/auth/login",
+  //       {
+  //         username,
+  //         password,
+  //       },
+  //     );
+
+  //     if (response.data.success) {
+  //       const { token, user } = response.data;
+
+  //       // localStorage-a yaz
+  //       localStorage.setItem("token", token);
+  //       localStorage.setItem("user", JSON.stringify(user));
+
+  //       // Axios header-ə əlavə et
+  //       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+
+  //       setUser(user);
+  //       return { success: true };
+  //     }
+  //   } catch (error) {
+  //     return {
+  //       success: false,
+  //       message: error.response?.data?.message || "Xəta baş verdi",
+  //     };
+  //   }
+  // };
+
+  // frontend/src/context/AuthContext.jsx
   const login = async (username, password) => {
     try {
       const response = await axios.post(
-        // "http://localhost:5000/api/auth/login",
-        // "https://employees-backend-nu.vercel.app/api/auth/login",
+        // 'http://localhost:5000/api/auth/login',
         process.env.REACT_APP_API_URL + "/auth/login",
         {
           username,
@@ -52,20 +85,23 @@ export const AuthProvider = ({ children }) => {
       if (response.data.success) {
         const { token, user } = response.data;
 
-        // localStorage-a yaz
         localStorage.setItem("token", token);
         localStorage.setItem("user", JSON.stringify(user));
 
-        // Axios header-ə əlavə et
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 
         setUser(user);
         return { success: true };
       }
     } catch (error) {
+      console.error("AuthContext login xətası:", error.response?.data);
+
+      // Backend-dən gələn error mesajını qaytar
       return {
         success: false,
-        message: error.response?.data?.message || "Xəta baş verdi",
+        message:
+          error.response?.data?.message ||
+          "İstifadəçi adı və ya şifrə yanlışdır!",
       };
     }
   };

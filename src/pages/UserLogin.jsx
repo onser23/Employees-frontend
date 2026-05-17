@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUserAuth } from "../context/UserAuthContext";
 import { LogIn, Mail, Lock, Eye, EyeOff, Briefcase } from "lucide-react";
-import toast from "react-hot-toast";
+import toast, { Toaster } from "react-hot-toast";
 
 const UserLogin = () => {
   const [formData, setFormData] = useState({
@@ -22,34 +22,88 @@ const UserLogin = () => {
     });
   };
 
-  // frontend/src/pages/UserLogin.jsx
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.email || !formData.password) {
-      toast.error("Bütün sahələri doldurun!");
+    // Validasiya
+    if (!formData.email.trim() || !formData.password) {
+      toast.error("Email və şifrə daxil edilməlidir!", {
+        duration: 4000,
+        icon: "⚠️",
+      });
+      return;
+    }
+
+    // Email formatı yoxlama
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error("Düzgün email formatı daxil edin!", {
+        duration: 4000,
+        icon: "⚠️",
+      });
       return;
     }
 
     setIsLoading(true);
 
-    const result = await login(formData.email, formData.password);
+    try {
+      console.log("Login göndərilir:", formData.email); // Debug
 
-    if (result.success) {
-      toast.success(`Xoş gəlmisiniz, ${result.user.firstName}!`);
-      // ✅ User dashboard-a yönləndir (dəyişə bilərsiz)
-      navigate("/user-dashboard");
-    } else {
-      toast.error(result.message);
+      const result = await login(formData.email, formData.password);
+
+      console.log("Login nəticəsi:", result); // Debug - BUNU YOXLAYIN
+
+      if (result.success) {
+        toast.success(`Xoş gəlmisiniz, ${result.user?.firstName || ""}!`, {
+          duration: 3000,
+          icon: "👋",
+        });
+        navigate("/user-dashboard");
+      } else {
+        // BURADA MÜTLƏQ TOAST ÇIXMALIDIR
+        console.log("Error mesajı:", result.message); // Debug
+
+        toast.error(result.message || "Email və ya şifrə yanlışdır!", {
+          duration: 4000,
+          icon: "❌",
+        });
+      }
+    } catch (error) {
+      console.error("UserLogin xətası:", error);
+      toast.error("Sistem xətası baş verdi. Zəhmət olmasa yenidən cəhd edin.", {
+        duration: 5000,
+        icon: "🔥",
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-500 via-teal-600 to-cyan-700 flex items-center justify-center p-4">
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: "#363636",
+            color: "#fff",
+            padding: "16px",
+            borderRadius: "8px",
+          },
+          success: {
+            style: {
+              background: "#22c55e",
+            },
+          },
+          error: {
+            style: {
+              background: "#ef4444",
+            },
+          },
+        }}
+      />
+
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-        {/* Logo və Başlıq */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
             <Briefcase className="w-10 h-10 text-white" />
@@ -58,7 +112,6 @@ const UserLogin = () => {
           <p className="text-gray-500">Hesabınıza daxil olun</p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -74,6 +127,7 @@ const UserLogin = () => {
                 className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                 placeholder="email@example.com"
                 disabled={isLoading}
+                autoComplete="email"
               />
             </div>
           </div>
@@ -92,6 +146,7 @@ const UserLogin = () => {
                 className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                 placeholder="Şifrənizi daxil edin"
                 disabled={isLoading}
+                autoComplete="current-password"
               />
               <button
                 type="button"
@@ -126,7 +181,6 @@ const UserLogin = () => {
           </button>
         </form>
 
-        {/* Admin giriş linki */}
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-500">
             Admin səhifəsinə keçid:{" "}
