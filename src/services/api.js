@@ -11,34 +11,77 @@ const api = axios.create({
   },
 });
 
-// Request interceptor - hər request-ə token əlavə et
+// Request interceptor
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Hər iki token-i yoxla
+    const adminToken = localStorage.getItem("token");
+    const userToken = localStorage.getItem("userToken");
+
+    // Hansı səhifədə olduğumuzu müəyyən et
+    const isUserRoute =
+      window.location.pathname.startsWith("/user") ||
+      window.location.pathname === "/user-login";
+
+    // Uyğun token-i göndər
+    if (isUserRoute && userToken) {
+      config.headers.Authorization = `Bearer ${userToken}`;
+    } else if (adminToken) {
+      config.headers.Authorization = `Bearer ${adminToken}`;
+    } else if (userToken) {
+      config.headers.Authorization = `Bearer ${userToken}`;
     }
+
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  },
+  (error) => Promise.reject(error),
 );
 
-// Response interceptor - 401 xətası gələrsə
+// Response interceptor - 401 xətası
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
+      // Hansı token-in aktiv olduğunu müəyyən et
+      const userToken = localStorage.getItem("userToken");
+      const adminToken = localStorage.getItem("token");
+      const currentPath = window.location.pathname;
+
+      // Əgər user token-i varsa və user səhifəsindədirsə
+      if (
+        userToken &&
+        (currentPath.startsWith("/user") || currentPath === "/user-login")
+      ) {
+        localStorage.removeItem("userToken");
+        localStorage.removeItem("userData");
+        delete api.defaults.headers.common["Authorization"];
+        window.location.href = "/user-login";
+        return Promise.reject(error);
+      }
+
+      // Əgər admin token-i varsa və ya user token-i yoxdursa adminə yönləndir
+      if (
+        adminToken ||
+        currentPath.startsWith("/admin") ||
+        currentPath === "/login"
+      ) {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        delete api.defaults.headers.common["Authorization"];
+        window.location.href = "/login";
+        return Promise.reject(error);
+      }
+
+      // Default - user səhifəsinə yönləndir
+      localStorage.removeItem("userToken");
+      localStorage.removeItem("userData");
+      window.location.href = "/user-login";
     }
     return Promise.reject(error);
   },
 );
 
-// İşçilər API
+// İşçilər API (Admin üçün)
 export const employeeAPI = {
   getAll: () => api.get("/employees"),
   getById: (id) => api.get(`/employees/${id}`),
@@ -47,13 +90,19 @@ export const employeeAPI = {
   delete: (id) => api.delete(`/employees/${id}`),
 };
 
-// Auth API
+// Admin Auth API
 export const authAPI = {
   login: (username, password) =>
     api.post("/auth/login", { username, password }),
   register: (username, password) =>
     api.post("/auth/register", { username, password }),
   me: () => api.get("/auth/me"),
+};
+
+// User Auth API
+export const userAuthAPI = {
+  login: (email, password) => api.post("/user-auth/login", { email, password }),
+  me: () => api.get("/user-auth/me"),
 };
 
 export default api;
