@@ -167,16 +167,6 @@ const Login = () => {
         </form>
 
         {/* Demo məlumat */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
-          <p className="font-medium mb-2">İlk dəfə istifadə edirsinizsə:</p>
-          <p>
-            Terminal-da{" "}
-            <code className="bg-gray-200 px-2 py-1 rounded">
-              npm run create-admin
-            </code>{" "}
-            əmrini işlədin.
-          </p>
-        </div>
       </div>
     </div>
   );
