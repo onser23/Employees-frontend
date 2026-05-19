@@ -62,3 +62,8 @@ code {
     0 10px 15px -3px var(--tw-shadow-color),
     0 4px 6px -4px var(--tw-shadow-color);
 }
+
+.w-20.h-20.bg-gradient-to-br.from-blue-500.to-purple-600.rounded-full.flex.items-center.justify-center.mx-auto.mb-4.shadow-lg {
+  width: 100%;
+  background: #ffffff;
+}
