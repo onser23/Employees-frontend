@@ -1,0 +1,592 @@
+import React, { useState, useEffect } from "react";
+import {
+  TrendingUp,
+  Plus,
+  Search,
+  Filter,
+  Trash2,
+  Pencil,
+  X,
+  Calendar,
+  DollarSign,
+  User,
+  ArrowRightLeft,
+  Save,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import { incomesAPI } from "../services/api";
+
+const IncomesPage = () => {
+  const [incomes, setIncomes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingIncome, setEditingIncome] = useState(null);
+
+  // Filter state
+  const [filters, setFilters] = useState({
+    startDate: "",
+    endDate: "",
+    buyer: "",
+    seller: "",
+  });
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Form state
+  const [formData, setFormData] = useState({
+    date: "",
+    amount: "",
+    currency: "AZN",
+    buyer: "",
+    seller: "",
+    description: "",
+  });
+
+  const currencies = ["AZN", "USD", "EUR", "TRY", "RUB"];
+
+  useEffect(() => {
+    fetchIncomes();
+  }, []);
+
+  const fetchIncomes = async (filterParams = {}) => {
+    try {
+      setLoading(true);
+      const response = await incomesAPI.getAll(filterParams);
+      setIncomes(response.data.data);
+    } catch (error) {
+      if (error.response?.status === 401) {
+        window.location.href = "/login";
+      } else {
+        toast.error("Gəlirləri yükləyərkən xəta baş verdi");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFilterChange = (e) => {
+    setFilters({
+      ...filters,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const applyFilters = () => {
+    const params = {};
+    if (filters.startDate) params.startDate = filters.startDate;
+    if (filters.endDate) params.endDate = filters.endDate;
+    if (filters.buyer) params.buyer = filters.buyer;
+    if (filters.seller) params.seller = filters.seller;
+
+    fetchIncomes(params);
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      startDate: "",
+      endDate: "",
+      buyer: "",
+      seller: "",
+    });
+    fetchIncomes();
+  };
+
+  const handleFormChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  const validateForm = () => {
+    if (!formData.date) {
+      toast.error("Tarix tələb olunur");
+      return false;
+    }
+    if (!formData.amount || formData.amount <= 0) {
+      toast.error("Məbləğ tələb olunur");
+      return false;
+    }
+    if (!formData.buyer.trim()) {
+      toast.error("Alıcı tələb olunur");
+      return false;
+    }
+    if (!formData.seller.trim()) {
+      toast.error("Satıcı tələb olunur");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    try {
+      if (editingIncome) {
+        await incomesAPI.update(editingIncome._id, formData);
+        toast.success("Gəlir uğurla yeniləndi!");
+      } else {
+        await incomesAPI.create(formData);
+        toast.success("Gəlir uğurla əlavə edildi!");
+      }
+      setShowForm(false);
+      setEditingIncome(null);
+      resetForm();
+      fetchIncomes();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Xəta baş verdi");
+    }
+  };
+
+  const handleEdit = (income) => {
+    setEditingIncome(income);
+    setFormData({
+      date: income.date.split("T")[0],
+      amount: income.amount,
+      currency: income.currency,
+      buyer: income.buyer,
+      seller: income.seller,
+      description: income.description || "",
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Bu gəlirini silmək istədiyinizə əminsiniz?")) return;
+
+    try {
+      await incomesAPI.delete(id);
+      toast.success("Gəlir uğurla silindi!");
+      fetchIncomes();
+    } catch (error) {
+      toast.error("Silinərkən xəta baş verdi");
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      date: "",
+      amount: "",
+      currency: "AZN",
+      buyer: "",
+      seller: "",
+      description: "",
+    });
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingIncome(null);
+    resetForm();
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString("az-AZ");
+  };
+
+  const formatAmount = (amount, currency) => {
+    return new Intl.NumberFormat("az-AZ").format(amount) + " " + currency;
+  };
+
+  const totalAmount = incomes.reduce((sum, income) => sum + income.amount, 0);
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-emerald-100 rounded-lg">
+            <TrendingUp className="w-6 h-6 text-emerald-600" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">Gəlirlər</h2>
+            <p className="text-sm text-gray-500">
+              {incomes.length} gəlir | Ümumi: {formatAmount(totalAmount, "AZN")}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
+              showFilters
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+            }`}
+          >
+            <Filter className="w-4 h-4" />
+            Filter
+          </button>
+          {!showForm && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Yeni Gəlir</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Filters */}
+      {showFilters && (
+        <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Başlanğıc tarix
+              </label>
+              <input
+                type="date"
+                name="startDate"
+                value={filters.startDate}
+                onChange={handleFilterChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Son tarix
+              </label>
+              <input
+                type="date"
+                name="endDate"
+                value={filters.endDate}
+                onChange={handleFilterChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Alıcı
+              </label>
+              <input
+                type="text"
+                name="buyer"
+                value={filters.buyer}
+                onChange={handleFilterChange}
+                placeholder="Alıcı axtar..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">
+                Satıcı
+              </label>
+              <input
+                type="text"
+                name="seller"
+                value={filters.seller}
+                onChange={handleFilterChange}
+                placeholder="Satıcı axtar..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 text-sm"
+              />
+            </div>
+          </div>
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={applyFilters}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 text-sm flex items-center gap-2"
+            >
+              <Search className="w-4 h-4" />
+              Axtar
+            </button>
+            <button
+              onClick={clearFilters}
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm"
+            >
+              Təmizlə
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Form */}
+      {showForm && (
+        <div className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-800">
+              {editingIncome ? "Gəlir Redaktə Et" : "Yeni Gəlir Əlavə Et"}
+            </h3>
+            <button
+              onClick={handleCancel}
+              className="text-gray-400 hover:text-gray-600"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          <form
+            onSubmit={handleSubmit}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+          >
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Tarix *
+              </label>
+              <input
+                type="date"
+                name="date"
+                value={formData.date}
+                onChange={handleFormChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Məbləğ *
+              </label>
+              <input
+                type="number"
+                name="amount"
+                value={formData.amount}
+                onChange={handleFormChange}
+                placeholder="0.00"
+                min="0"
+                step="0.01"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Valyuta *
+              </label>
+              <select
+                name="currency"
+                value={formData.currency}
+                onChange={handleFormChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+              >
+                {currencies.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Alıcı *
+              </label>
+              <input
+                type="text"
+                name="buyer"
+                value={formData.buyer}
+                onChange={handleFormChange}
+                placeholder="Alıcı adı"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Satıcı *
+              </label>
+              <input
+                type="text"
+                name="seller"
+                value={formData.seller}
+                onChange={handleFormChange}
+                placeholder="Satıcı adı"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Açıqlama
+              </label>
+              <input
+                type="text"
+                name="description"
+                value={formData.description}
+                onChange={handleFormChange}
+                placeholder="Əlavə məlumat..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"
+              />
+            </div>
+            <div className="sm:col-span-2 lg:col-span-3 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Ləğv Et
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 flex items-center gap-2"
+              >
+                <Save className="w-4 h-4" />
+                {editingIncome ? "Yenilə" : "Əlavə Et"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Table - Desktop */}
+      <div className="hidden md:block bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">
+                  Tarix
+                </th>
+                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">
+                  Alıcı
+                </th>
+                <th className="text-left py-3 px-4 text-xs font-semibold text-gray-500 uppercase">
+                  Satıcı
+                </th>
+                <th className="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase">
+                  Məbləğ
+                </th>
+                <th className="text-center py-3 px-4 text-xs font-semibold text-gray-500 uppercase">
+                  Valyuta
+                </th>
+                <th className="text-right py-3 px-4 text-xs font-semibold text-gray-500 uppercase">
+                  Əməliyyatlar
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {incomes.map((income) => (
+                <tr
+                  key={income._id}
+                  className="hover:bg-gray-50 transition-colors"
+                >
+                  <td className="py-3 px-4 text-sm text-gray-800">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-gray-400" />
+                      {formatDate(income.date)}
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-800">
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4 text-blue-400" />
+                      {income.buyer}
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-800">
+                    <div className="flex items-center gap-2">
+                      <ArrowRightLeft className="w-4 h-4 text-green-400" />
+                      {income.seller}
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-gray-800 text-right font-medium">
+                    {formatAmount(income.amount, income.currency)}
+                  </td>
+                  <td className="py-3 px-4 text-center">
+                    <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-medium">
+                      {income.currency}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => handleEdit(income)}
+                        className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(income._id)}
+                        className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-3">
+        {incomes.map((income) => (
+          <div
+            key={income._id}
+            className="bg-white rounded-lg shadow-sm p-4 border border-gray-200"
+          >
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Calendar className="w-4 h-4" />
+                {formatDate(income.date)}
+              </div>
+              <span className="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-medium">
+                {income.currency}
+              </span>
+            </div>
+
+            <div className="space-y-2 mb-3">
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-500">Alıcı:</span>
+                <span className="text-sm font-medium text-gray-800">
+                  {income.buyer}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-sm text-gray-500">Satıcı:</span>
+                <span className="text-sm font-medium text-gray-800">
+                  {income.seller}
+                </span>
+              </div>
+              <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+                <span className="text-sm text-gray-500">Məbləğ:</span>
+                <span className="text-lg font-bold text-emerald-600">
+                  {formatAmount(income.amount, income.currency)}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2 border-t border-gray-100">
+              <button
+                onClick={() => handleEdit(income)}
+                className="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-sm font-medium flex items-center justify-center gap-1"
+              >
+                <Pencil className="w-3 h-3" />
+                Redaktə
+              </button>
+              <button
+                onClick={() => handleDelete(income._id)}
+                className="flex-1 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-medium flex items-center justify-center gap-1"
+              >
+                <Trash2 className="w-3 h-3" />
+                Sil
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Empty State */}
+      {incomes.length === 0 && !loading && (
+        <div className="text-center py-12 bg-white rounded-lg">
+          <TrendingUp className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-600">Gəlir tapılmadı</h3>
+          <p className="text-gray-400 text-sm mt-1">
+            Yeni gəlir əlavə etmək üçün "Yeni Gəlir" düyməsinə klik edin
+          </p>
+        </div>
+      )}
+
+      {/* Loading */}
+      {loading && (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default IncomesPage;

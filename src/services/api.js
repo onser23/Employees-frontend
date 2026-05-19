@@ -105,4 +105,22 @@ export const userAuthAPI = {
   me: () => api.get("/user-auth/me"),
 };
 
+// Satışlar API (YENI)
+export const salesAPI = {
+  getAll: (params = {}) => api.get("/sales", { params }),
+  getById: (id) => api.get(`/sales/${id}`),
+  create: (data) => api.post("/sales", data),
+  update: (id, data) => api.put(`/sales/${id}`, data),
+  delete: (id) => api.delete(`/sales/${id}`),
+};
+
+// Gəlirlər API (YENI)
+export const incomesAPI = {
+  getAll: (params = {}) => api.get("/incomes", { params }),
+  getById: (id) => api.get(`/incomes/${id}`),
+  create: (data) => api.post("/incomes", data),
+  update: (id, data) => api.put(`/incomes/${id}`, data),
+  delete: (id) => api.delete(`/incomes/${id}`),
+};
+
 export default api;

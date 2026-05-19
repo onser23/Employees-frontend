@@ -5,10 +5,12 @@ import {
   LayoutDashboard,
   Users,
   Truck,
-  LogOut,
   ChevronLeft,
   ChevronRight,
   Menu,
+  ShoppingCart, // YENI - Satışlar
+  TrendingUp, // YENI - Gəlirlər
+  LogOut,
 } from "lucide-react";
 
 const Sidebar = () => {
@@ -17,6 +19,7 @@ const Sidebar = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
 
+  // Menu items içində:
   const menuItems = [
     {
       path: "/admin",
@@ -34,6 +37,18 @@ const Sidebar = () => {
       path: "/admin/expeditors",
       label: "Ekspeditorlar",
       icon: Truck,
+      exact: false,
+    },
+    {
+      path: "/admin/sales", // YENI
+      label: "Satışlar",
+      icon: ShoppingCart,
+      exact: false,
+    },
+    {
+      path: "/admin/incomes", // YENI
+      label: "Gəlirlər",
+      icon: TrendingUp,
       exact: false,
     },
   ];
