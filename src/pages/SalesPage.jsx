@@ -12,12 +12,15 @@ import {
   User,
   ArrowRightLeft,
   Save,
+  ChevronDown,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { salesAPI } from "../services/api";
 
 const SalesPage = () => {
   const [sales, setSales] = useState([]);
+  const [sellers, setSellers] = useState([]);
+  const [buyers, setBuyers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingSale, setEditingSale] = useState(null);
@@ -45,6 +48,8 @@ const SalesPage = () => {
 
   useEffect(() => {
     fetchSales();
+    fetchSellers();
+    fetchBuyers();
   }, []);
 
   const fetchSales = async (filterParams = {}) => {
@@ -60,6 +65,24 @@ const SalesPage = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSellers = async () => {
+    try {
+      const response = await salesAPI.getSellers();
+      setSellers(response.data.data);
+    } catch (error) {
+      console.error("Satıcıları yükləyərkən xəta:", error);
+    }
+  };
+
+  const fetchBuyers = async () => {
+    try {
+      const response = await salesAPI.getBuyers();
+      setBuyers(response.data.data);
+    } catch (error) {
+      console.error("Alıcıları yükləyərkən xəta:", error);
     }
   };
 
@@ -193,7 +216,7 @@ const SalesPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* ... Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-blue-100 rounded-lg">
@@ -230,8 +253,7 @@ const SalesPage = () => {
           )}
         </div>
       </div>
-
-      {/* Filters */}
+      {/* Filters - YENILENMIS */}
       {showFilters && (
         <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -259,31 +281,49 @@ const SalesPage = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
               />
             </div>
+            {/* ✅ YENI: Alıcı dropdown */}
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">
                 Alıcı
               </label>
-              <input
-                type="text"
-                name="buyer"
-                value={filters.buyer}
-                onChange={handleFilterChange}
-                placeholder="Alıcı axtar..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-              />
+              <div className="relative">
+                <select
+                  name="buyer"
+                  value={filters.buyer}
+                  onChange={handleFilterChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm appearance-none bg-white"
+                >
+                  <option value="">Bütün alıcılar</option>
+                  {buyers.map((buyer, index) => (
+                    <option key={index} value={buyer}>
+                      {buyer}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+              </div>
             </div>
+            {/* Satıcı dropdown */}
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">
                 Satıcı
               </label>
-              <input
-                type="text"
-                name="seller"
-                value={filters.seller}
-                onChange={handleFilterChange}
-                placeholder="Satıcı axtar..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm"
-              />
+              <div className="relative">
+                <select
+                  name="seller"
+                  value={filters.seller}
+                  onChange={handleFilterChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm appearance-none bg-white"
+                >
+                  <option value="">Bütün satıcılar</option>
+                  {sellers.map((seller, index) => (
+                    <option key={index} value={seller}>
+                      {seller}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
+              </div>
             </div>
           </div>
           <div className="flex gap-2 mt-4">
