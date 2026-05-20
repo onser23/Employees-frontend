@@ -70,7 +70,7 @@ export const AuthProvider = ({ children }) => {
   //   }
   // };
 
-  // frontend/src/context/AuthContext.jsx
+  // frontend/src/context/AuthContext.jsxx
   const login = async (username, password) => {
     try {
       const response = await axios.post(
